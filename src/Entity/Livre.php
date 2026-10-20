@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Symfony\Component\Serializer\Attribute\Groups;
 use App\Repository\LivreRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -12,19 +13,29 @@ class Livre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['livre:lecture'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['livre:lecture'])]
     private ?string $titre = null;
 
     #[ORM\Column(length: 13)]
+    #[Groups(['livre:lecture'])]
     private ?string $isbn = null;
 
     #[ORM\Column]
+    #[Groups(['livre:lecture'])]
     private ?int $anneePublication = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['livre:lecture'])]
     private ?string $resume = null;
+
+    #[ORM\ManyToOne(inversedBy: 'livres')]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['livre:lecture'])]
+    private ?auteur $auteur = null;
 
     public function getId(): ?int
     {
@@ -75,6 +86,18 @@ class Livre
     public function setResume(?string $resume): static
     {
         $this->resume = $resume;
+
+        return $this;
+    }
+
+    public function getAuteur(): ?auteur
+    {
+        return $this->auteur;
+    }
+
+    public function setAuteur(?auteur $auteur): static
+    {
+        $this->auteur = $auteur;
 
         return $this;
     }
