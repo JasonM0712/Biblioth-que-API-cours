@@ -2,10 +2,17 @@
 
 namespace App\Controller;
 
+use App\Entity\Livre;
+use App\Repository\AuteurRepository;
+use App\Repository\LivreRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Repository\LivreRepository;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
+use Symfony\Component\Serializer\Normalizer\DenormalizableInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/livres', name: 'app_livre')]
 
@@ -41,4 +48,31 @@ final class LivreController extends AbstractController
         );
 
     }
+
+#[Route('/', name: 'livre_creation', methods: ['POST'])]
+public function creation( Request $request, DenormalizableInterface $denormalizer, ValidatorInterface $validator, AuteurRepository $auteurRepository, EntityManagerInterface $em) : JsonResponse {
+        
+        $donnees = $request->toArray();
+
+        try {
+            $livre = $denormalizer->denormalize($donnees, Livre::class, null, ['groups' => 'livre:ecriture']);
+        } catch (NotNormalizableValueException $e){
+            return $this->json(['erreur' => $e->getMessage()], 400);
+        }
+
+        $livre->setAuteur($auteurRepository->find($donnees['auteurId'] ?? 0));
+
+        //validation 
+
+        $erreurs = $validator->validate($livre);
+        if (count($erreurs) > 0) {
+            return $this->json(['erreurs', 422]);
+        }
+
+        $em->persist($livre);
+        $em->flush();
+
+        return $this->json($livre, 201);
+ 
+}
 }

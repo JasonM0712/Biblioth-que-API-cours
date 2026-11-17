@@ -6,6 +6,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use App\Repository\LivreRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: LivreRepository::class)]
 class Livre
@@ -17,15 +18,22 @@ class Livre
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['livre:lecture'])]
+    #[Groups(['livre:lecture', 'livre:ecriture'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(
+        max: 255,
+    )]
     private ?string $titre = null;
 
     #[ORM\Column(length: 13)]
-    #[Groups(['livre:lecture'])]
+    #[Groups(['livre:lecture', 'livre:ecriture'])]
+    #[Assert\NotBlank]
+    #[Assert\Length( exactly: 13 )]
     private ?string $isbn = null;
 
     #[ORM\Column]
     #[Groups(['livre:lecture'])]
+    #[Assert\Positive]
     private ?int $anneePublication = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -35,6 +43,7 @@ class Livre
     #[ORM\ManyToOne(inversedBy: 'livres')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['livre:lecture'])]
+    #[Assert\NotNull( message: 'on est obliger d\'avoir un auteur')]
     private ?auteur $auteur = null;
 
     public function getId(): ?int
